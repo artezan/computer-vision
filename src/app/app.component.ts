@@ -22,6 +22,23 @@ export class AppComponent {
     this.platform.ready().then(() => {
       this.statusBar.styleDefault();
       this.splashScreen.hide();
+      document.body.classList.toggle('dark', true);
+     /*  // Use matchMedia to check the user preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+      toggleDarkTheme(prefersDark.matches);
+
+      // Listen for changes to the prefers-color-scheme media query
+      // tslint:disable-next-line: deprecation
+      prefersDark.addListener(mediaQuery =>
+        toggleDarkTheme(mediaQuery.matches)
+      );
+
+      // Add or remove the "dark" class based on if the media query matches
+      function toggleDarkTheme(shouldAdd) {
+        console.log('is dark', shouldAdd);
+        document.body.classList.toggle('dark', shouldAdd);
+      } */
     });
   }
 }

@@ -1,14 +1,73 @@
-<ion-header>
+<ion-header *ngIf="!status.camera">
   <ion-toolbar>
     <ion-title>
-      Ionic Blank
+      OCR Camera
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div class="ion-padding">
-    The world is your oyster.
-    <p>If you get lost, the <a target="_blank" rel="noopener" href="https://ionicframework.com/docs/">docs</a> will be your guide.</p>
-  </div>
+  <ng-container *ngIf="!status.camera; then debugCont ; else cameraCont"></ng-container>
+  <!-- Camera -->
+  <ng-template #cameraCont>
+
+  </ng-template>
+  <!-- Debug mode -->
+  <ng-template #debugCont>
+    <ion-card>
+      <ion-card-header>
+        Log
+      </ion-card-header>
+      <ion-card-content>
+        <pre>
+      {{log}}
+    </pre>
+      </ion-card-content>
+    </ion-card>
+  </ng-template>
+  <!-- Both -->
+
+  <!-- /Both -->
+  <!-- Fabs -->
+  <ion-fab vertical="bottom"
+           horizontal="end"
+           slot="fixed">
+    <ng-container *ngIf="!status.camera; then debugMode ; else cameraMode"></ng-container>
+    <!-- Camera off -->
+    <ng-template #debugMode>
+      <ion-fab-button (click)="startCamera()">
+        <ion-icon name="camera"></ion-icon>
+      </ion-fab-button>
+    </ng-template>
+    <!-- Camera on -->
+    <ng-template #cameraMode>
+
+      <ion-fab-button>
+        <ion-icon name="settings"></ion-icon>
+      </ion-fab-button>
+
+      <ion-fab-list side="top">
+        <ion-fab-button>
+          <ion-icon color="danger"
+                    (click)="stopCamera()"
+                    name="bug"></ion-icon>
+        </ion-fab-button>
+      </ion-fab-list>
+
+
+      <ion-fab-list side="start">
+        <ion-fab-button>
+          <ion-icon name="aperture"></ion-icon>
+        </ion-fab-button>
+      </ion-fab-list>
+
+
+    </ng-template>
+
+
+  </ion-fab>
+  <ion-button (click)="read()">read</ion-button>
+  <input type="file"
+         (change)="fileInput($event)">
+  <ion-button (click)="tesseractRead(mockImg)">tesseract</ion-button>
 </ion-content>
