@@ -92,8 +92,8 @@ export class HomePage implements AfterViewInit {
     });
   }
   draw(img, test) {
-    this.canvas = document.getElementById('canvas') as any;
-    // this.canvas = this.document.createElement('canvas');
+    // this.canvas = document.getElementById('canvas') as any;
+    this.canvas = this.document.createElement('canvas');
     const ctx = this.canvas.getContext('2d');
     this.result.push('Draw');
     this.result.push(`img.width: ${img.width}`);
@@ -106,6 +106,20 @@ export class HomePage implements AfterViewInit {
         'grayscale(100%) saturate(1) brightness(300%) contrast(400%)';
       ctx.drawImage(img, 0, 0);
     } else if (test === 'b') {
+      const imageData = ctx.getImageData(
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+      );
+      const pix = imageData.data;
+      this.testB(pix, ctx, imageData);
+    } else if (test === 'c') {
+      ctx.filter = 'grayscale(100%) brightness(600%) contrast(800%)';
+      ctx.drawImage(img, 0, 0);
+    } else if (test === 'd') {
+      ctx.filter = 'grayscale(100%)';
+      ctx.drawImage(img, 0, 0);
       const imageData = ctx.getImageData(
         0,
         0,
@@ -143,6 +157,7 @@ export class HomePage implements AfterViewInit {
   }
   tesseractRead(toRead) {
     this.result.push('init read');
+    this.log = this.result.join('\n');
     const startTime = new Date().getTime();
     const worker = createWorker({
       langPath: './assets/i18n/fast',

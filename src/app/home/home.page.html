@@ -53,17 +53,13 @@
       </ion-item>
 
       <div style="overflow-x:auto;">
-        <!-- <img [src]="imgSrc"
-             class="responsive"> -->
+        <img [src]="imgSrc"
+             class="responsive">
 
       </div>
 
     </ng-container>
-      <canvas class="responsive" id="canvas"></canvas>
-
-
-
-
+    <!-- <canvas class="responsive" id="canvas"></canvas> -->
   </ng-template>
   <!-- Both -->
 
@@ -113,8 +109,10 @@
   </ion-fab>
   <!-- Both   -->
   <ion-button (click)="read()">read</ion-button>
-  <ion-button (click)="takeSnapshot('b')">takeSnapshot b</ion-button>
-  <ion-button (click)="takeSnapshot('normal')">takeSnapshot n</ion-button>
+  <ion-button (click)="takeSnapshot('b')"> b</ion-button>
+  <ion-button (click)="takeSnapshot('c')"> c</ion-button>
+  <ion-button (click)="takeSnapshot('d')"> d</ion-button>
+  <ion-button (click)="takeSnapshot('normal')">normal</ion-button>
   <ion-button [disabled]="!imgSrc"
               (click)="showImg = !showImg">show prev</ion-button>
   <input type="file"
