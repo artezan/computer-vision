@@ -24,6 +24,46 @@
     </pre>
       </ion-card-content>
     </ion-card>
+    <!-- <input [(ngModel)]="b64Str" type="text"> -->
+    <!-- show img prev -->
+    <ng-container *ngIf="showImg">
+
+      <ion-item>
+        <ion-label position="floating">grayscale</ion-label>
+        <ion-input [(ngModel)]="grayscale"
+                   (ionInput)="handleChanges()"
+                  ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">saturate</ion-label>
+        <ion-input [(ngModel)]="saturate"
+                   (ionInput)="handleChanges()"
+                   ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">brightness</ion-label>
+        <ion-input [(ngModel)]="brightness"
+                   (ionInput)="handleChanges()"
+                   ></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">contrast</ion-label>
+        <ion-input [(ngModel)]="contrast"
+                   (ionInput)="handleChanges()"
+                  ></ion-input>
+      </ion-item>
+
+      <div style="overflow-x:auto;">
+        <img [src]="imgSrc"
+             class="responsive">
+      </div>
+
+    </ng-container>
+
+
   </ng-template>
   <!-- Both -->
 
@@ -57,7 +97,12 @@
 
       <ion-fab-list side="start">
         <ion-fab-button>
-          <ion-icon name="aperture"></ion-icon>
+          <ion-icon (click)="takeSnapshot()"
+                    name="aperture"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button>
+          <ion-icon (click)="takePicture()"
+                    name="camera"></ion-icon>
         </ion-fab-button>
       </ion-fab-list>
 
@@ -66,8 +111,12 @@
 
 
   </ion-fab>
+  <!-- Both   -->
   <ion-button (click)="read()">read</ion-button>
+  <ion-button (click)="takeSnapshot('b')">takeSnapshot b</ion-button>
+  <ion-button (click)="takeSnapshot('normal')">takeSnapshot n</ion-button>
+  <ion-button [disabled]="!imgSrc"
+              (click)="showImg = !showImg">show prev</ion-button>
   <input type="file"
          (change)="fileInput($event)">
-  <ion-button (click)="tesseractRead(mockImg)">tesseract</ion-button>
 </ion-content>
