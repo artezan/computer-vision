@@ -92,8 +92,8 @@ export class HomePage implements AfterViewInit {
     });
   }
   draw(img, test) {
-    // this.canvas = document.getElementById('canvas') as any;
-    this.canvas = this.document.createElement('canvas');
+    this.canvas = document.getElementById('canvas') as any;
+    // this.canvas = this.document.createElement('canvas');
     const ctx = this.canvas.getContext('2d');
     this.result.push('Draw');
     this.result.push(`img.width: ${img.width}`);

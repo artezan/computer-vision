@@ -31,37 +31,37 @@
       <ion-item>
         <ion-label position="floating">grayscale</ion-label>
         <ion-input [(ngModel)]="grayscale"
-                   (ionInput)="handleChanges()"
-                  ></ion-input>
+                   (ionInput)="handleChanges()"></ion-input>
       </ion-item>
 
       <ion-item>
         <ion-label position="floating">saturate</ion-label>
         <ion-input [(ngModel)]="saturate"
-                   (ionInput)="handleChanges()"
-                   ></ion-input>
+                   (ionInput)="handleChanges()"></ion-input>
       </ion-item>
 
       <ion-item>
         <ion-label position="floating">brightness</ion-label>
         <ion-input [(ngModel)]="brightness"
-                   (ionInput)="handleChanges()"
-                   ></ion-input>
+                   (ionInput)="handleChanges()"></ion-input>
       </ion-item>
 
       <ion-item>
         <ion-label position="floating">contrast</ion-label>
         <ion-input [(ngModel)]="contrast"
-                   (ionInput)="handleChanges()"
-                  ></ion-input>
+                   (ionInput)="handleChanges()"></ion-input>
       </ion-item>
 
       <div style="overflow-x:auto;">
-        <img [src]="imgSrc"
-             class="responsive">
+        <!-- <img [src]="imgSrc"
+             class="responsive"> -->
+
       </div>
 
     </ng-container>
+      <canvas class="responsive" id="canvas"></canvas>
+
+
 
 
   </ng-template>
