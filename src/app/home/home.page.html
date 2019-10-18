@@ -6,115 +6,216 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ng-container *ngIf="!status.camera; then debugCont ; else cameraCont"></ng-container>
-  <!-- Camera -->
-  <ng-template #cameraCont>
+<div style="overflow-x:auto; text-align: center;"
+     *ngIf="tabSelect === 'edit' || showIMG">
+  <img #imgPrev
+       [src]="imgSrc"
+       [ngStyle]="{
+             'filter': 'grayscale(' + grayscale + '%) saturate(' + saturate + '%) brightness(' + brightness + '%) contrast(' + contrast + '%) sepia(' + sepia + '%) opacity(' + opacity + '%) invert('+ invert + '%)'
+           }"
+       class="responsive">
 
-  </ng-template>
-  <!-- Debug mode -->
-  <ng-template #debugCont>
-    <ion-card>
-      <ion-card-header>
-        Log
-      </ion-card-header>
-      <ion-card-content>
-        <pre>
-      {{log}}
-    </pre>
-      </ion-card-content>
-    </ion-card>
-    <!-- <input [(ngModel)]="b64Str" type="text"> -->
-    <!-- show img prev -->
-    <ng-container *ngIf="showImg">
+</div>
 
-      <ion-item>
-        <ion-label position="floating">grayscale</ion-label>
-        <ion-input [(ngModel)]="grayscale"
-                   (ionInput)="handleChanges()"></ion-input>
-      </ion-item>
+<ion-content class="ion-padding">
 
-      <ion-item>
-        <ion-label position="floating">saturate</ion-label>
-        <ion-input [(ngModel)]="saturate"
-                   (ionInput)="handleChanges()"></ion-input>
-      </ion-item>
 
-      <ion-item>
-        <ion-label position="floating">brightness</ion-label>
-        <ion-input [(ngModel)]="brightness"
-                   (ionInput)="handleChanges()"></ion-input>
-      </ion-item>
+  <span [ngSwitch]="tabSelect">
+    <!-- log -->
+    <div *ngSwitchCase="'log'">
+      <ion-card>
+        <ion-card-header>
+          Log
+        </ion-card-header>
+        <ion-card-content>
+          <pre>
+          {{log}}
+        </pre>
+        </ion-card-content>
+      </ion-card>
+      <input type="file"
+             (change)="fileInput($event)">
+      <!-- <ion-button (click)="read(); tabSelect = 'log' ">read</ion-button> -->
+      <ion-button (click)="testAzure()"> azure</ion-button>
+    </div>
+    <!-- /log -->
+    <!-- edit -->
+    <div *ngSwitchCase="'edit'">
 
-      <ion-item>
-        <ion-label position="floating">contrast</ion-label>
-        <ion-input [(ngModel)]="contrast"
-                   (ionInput)="handleChanges()"></ion-input>
-      </ion-item>
+      <ion-list lines="full">
+        <ion-item>
+          <ion-label position="floating">grayscale</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="grayscale"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="grayscale = 0">Reset</ion-button>
 
-      <div style="overflow-x:auto;">
-        <img [src]="imgSrc"
-             class="responsive">
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="grayscale"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
 
-      </div>
+        <ion-item>
+          <ion-label position="floating">brightness</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="brightness"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="brightness = 100">Reset</ion-button>
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="brightness"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
 
-    </ng-container>
-    <!-- <canvas class="responsive" id="canvas"></canvas> -->
-  </ng-template>
-  <!-- Both -->
+        <ion-item>
+          <ion-label position="floating">contrast</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="contrast"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="contrast = 100">Reset</ion-button>
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="contrast"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
 
-  <!-- /Both -->
+        <ion-item>
+          <ion-label position="floating">invert</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="invert"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="invert = 0">Reset</ion-button>
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="invert"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">opacity</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="opacity"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="opacity = 100">Reset</ion-button>
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="opacity"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">sepia</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="sepia"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="sepia = 0">Reset</ion-button>
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="sepia"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">saturate</ion-label>
+          <ion-input type="number"
+                     [(ngModel)]="saturate"></ion-input>
+          <ion-button size="small"
+                      slot="end"
+                      fill="outline"
+                      (click)="saturate = 100">Reset</ion-button>
+          <ion-range min="0"
+                     max="2000"
+                     [(ngModel)]="saturate"
+                     color="secondary">
+          </ion-range>
+        </ion-item>
+      </ion-list>
+      <ion-button (click)="draw( imgGeneral, 'c')"> c</ion-button>
+      <ion-button (click)="draw( imgGeneral, 'b')"> b</ion-button>
+      <!-- Read with filters -->
+      <ion-button (click)="readWithFilter(); tabSelect = 'log' "
+                  color="secondary">read filters</ion-button>
+
+
+    </div>
+
+    <!-- camera -->
+
+    <div *ngSwitchCase="'camera'">
+
+    </div>
+
+  </span>
+
   <!-- Fabs -->
   <ion-fab vertical="bottom"
            horizontal="end"
            slot="fixed">
-    <ng-container *ngIf="!status.camera; then debugMode ; else cameraMode"></ng-container>
-    <!-- Camera off -->
-    <ng-template #debugMode>
-      <ion-fab-button (click)="startCamera()">
+    <ng-container *ngIf="status.camera; else elseTemplate">
+      <ion-fab-button color="danger"
+                      (click)="stopCamera(); tabSelect = 'log'; ">
+        <ion-icon name="pause"></ion-icon>
+      </ion-fab-button>
+    </ng-container>
+    <ng-template #elseTemplate>
+      <ion-fab-button (click)="startCamera(); tabSelect = 'camera'">
         <ion-icon name="camera"></ion-icon>
       </ion-fab-button>
-    </ng-template>
-    <!-- Camera on -->
-    <ng-template #cameraMode>
-
-      <ion-fab-button>
-        <ion-icon name="settings"></ion-icon>
-      </ion-fab-button>
-
-      <ion-fab-list side="top">
-        <ion-fab-button>
-          <ion-icon color="danger"
-                    (click)="stopCamera()"
-                    name="bug"></ion-icon>
-        </ion-fab-button>
-      </ion-fab-list>
-
-
-      <ion-fab-list side="start">
-        <ion-fab-button>
-          <ion-icon (click)="takeSnapshot()"
-                    name="aperture"></ion-icon>
-        </ion-fab-button>
-        <ion-fab-button>
-          <ion-icon (click)="takePicture()"
-                    name="camera"></ion-icon>
-        </ion-fab-button>
-      </ion-fab-list>
-
-
     </ng-template>
 
 
   </ion-fab>
-  <!-- Both   -->
-  <ion-button (click)="read()">read</ion-button>
-  <ion-button (click)="takeSnapshot('b')"> b</ion-button>
-  <ion-button (click)="takeSnapshot('c')"> c</ion-button>
-  <ion-button (click)="takeSnapshot('d')"> d</ion-button>
-  <ion-button (click)="takeSnapshot('normal')">normal</ion-button>
-  <ion-button [disabled]="!imgSrc"
-              (click)="showImg = !showImg">show prev</ion-button>
-  <input type="file"
-         (change)="fileInput($event)">
+  <!-- /fabs -->
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar *ngIf="tabSelect === 'camera'">
+    <ion-button (click)="takeSnapshot('azure')"> azure</ion-button>
+    <ion-button (click)="takeSnapshot('c')"> c</ion-button>
+    <ion-button (click)="takeSnapshot('d')"> d</ion-button>
+    <ion-button (click)="takeSnapshot('normal')">normal</ion-button>
+    <ion-button (click)="testMock(); ">test</ion-button>
+  </ion-toolbar>
+  <ion-toolbar color="light">
+    <ion-tabs>
+      <ion-tab-bar slot="bottom">
+        <!--  <ion-tab-button (click)="tabSelect = 'camera'; startCamera() ">
+          <ion-icon name="camera"></ion-icon>
+          <ion-label>camera</ion-label>
+        </ion-tab-button> -->
+
+        <ion-tab-button [selected]="tabSelect === 'log'"
+                        (click)="tabSelect = 'log'">
+          <ion-icon name="bug"></ion-icon>
+          <ion-label>log</ion-label>
+        </ion-tab-button>
+
+        <ion-tab-button [selected]="tabSelect === 'edit'"
+                        [disabled]="!imgSrc"
+                        (click)="tabSelect = 'edit'">
+          <ion-icon name="image"></ion-icon>
+          <ion-label>edit</ion-label>
+        </ion-tab-button>
+      </ion-tab-bar>
+    </ion-tabs>
+  </ion-toolbar>
+</ion-footer>
