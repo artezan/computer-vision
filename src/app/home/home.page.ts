@@ -17,6 +17,7 @@ import * as Tesseract from 'tesseract.js';
 import { Platform, LoadingController } from '@ionic/angular';
 import { AzureOcrService } from '../services/azure-ocr.service';
 import { environment } from 'src/environments/environment';
+import { OCRModel } from '../models/azure-ocr.model';
 declare const Buffer;
 
 type FiltersTest = 'normal' | 'a' | 'b' | 'c' | 'd';
@@ -46,6 +47,7 @@ export class HomePage {
   opacity = 100;
   sepia = 0;
   showIMG = false;
+  time = { start: 0, end: 0 };
   public tabSelect: TabSelect = 'log';
   constructor(
     private cameraPreview: CameraPreview,
@@ -54,7 +56,6 @@ export class HomePage {
     public azureOcrService: AzureOcrService,
     @Inject(DOCUMENT) private document: Document
   ) {
-    console.log(environment);
     //  this.platform.platforms().some()
   }
   // camera cordova
@@ -99,6 +100,7 @@ export class HomePage {
     );
   }
   takeSnapshot(test: FiltersTest = 'a') {
+    this.time.start = new Date().getTime();
     this.cameraPreview.takeSnapshot({ quality: 95 }).then(
       base64PictureData => {
         this.b64Str = base64PictureData;
@@ -110,7 +112,6 @@ export class HomePage {
           this.result.push(
             `image takeSnapshot: ${image.width} x ${image.height}, size: ${image.sizes} `
           );
-          this.result.push('B64: ' + base64PictureData);
           this.draw(image, test);
           this.goToEdit();
           load.dismiss();
@@ -151,7 +152,7 @@ export class HomePage {
       this.document.body.style.cssText = '--ion-background-color: #121212;';
     } else {
       this.cameraPreview.stopCamera().then(() => {
-        this.log = this.result.join('\n');
+        this.printResult();
       });
     }
   }
@@ -176,6 +177,8 @@ export class HomePage {
     this.canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
     this.result.push('Draw finish');
+
+    // start cases
     // test filters by canvas
     if (test === 'a') {
       ctx.filter =
@@ -207,10 +210,16 @@ export class HomePage {
     } else if (test === 'normal') {
       ctx.drawImage(img, 0, 0);
     } else if (test === 'azure') {
-      const file = this.dataURLtoFile(img.src, 'img');
-
+      // Azure OCR
+      const file = this.dataURLtoFile(img.src, 'img.jpeg');
       this.sendToAzure(file);
+    } else if (test === 'azure64') {
+      // Azure OCR
+      const blob = this.b64toBlob(this.b64Str, 'image/jpeg');
+      this.sendToAzure(blob);
     }
+    // end cases
+
     this.imgGeneral = img;
     this.ctxGeneral = ctx;
     this.imgSrc = this.canvas.toDataURL();
@@ -218,7 +227,7 @@ export class HomePage {
   testB(pix, ctx, imageData) {
     const newColor = { r: 255, g: 255, b: 255, a: 255 };
     for (let i = 0, n = pix.length; i < n; i += 4) {
-      let r = pix[i],
+      const r = pix[i],
         g = pix[i + 1],
         b = pix[i + 2];
 
@@ -251,7 +260,7 @@ export class HomePage {
   }
   tesseractRead(toRead) {
     this.result.push('init read');
-    this.log = this.result.join('\n');
+    this.printResult();
     const startTime = new Date().getTime();
     const worker = createWorker({
       langPath: './assets/i18n/fast',
@@ -272,7 +281,7 @@ export class HomePage {
       this.result.push(`Time(ms): ${endTime - startTime}`);
       console.log(data);
       this.result.push(data.text);
-      this.log = this.result.join('\n');
+      this.printResult();
       await worker.terminate();
     })();
     /*  worker
@@ -311,10 +320,18 @@ export class HomePage {
     }
   }
   // helpers
-  sendToAzure(img: File) {
+  sendToAzure(img: File | Blob) {
     console.log('blob', img);
     console.log('isBlob', img instanceof Blob);
-    this.azureOcrService.postImgToOCR(img).subscribe(res => console.log(res));
+    this.azureOcrService.postImgToOCR(img).subscribe((res: OCRModel) => {
+      this.time.end = new Date().getTime();
+      console.log(res);
+      this.result.push(`Time of read: ${this.time.end - this.time.start}ms`);
+      const { result, str } = this.reduceResponse(res);
+      this.result.push(str);
+      this.result.push(JSON.stringify(result, null, 2));
+      this.printResult();
+    });
   }
 
   private dataURLtoFile(dataurl, filename): File {
@@ -329,12 +346,46 @@ export class HomePage {
     return new File([u8arr], filename, { type: mime });
   }
 
+  /**
+   * Convert a base64 string in a Blob according to the data and contentType.
+   *
+   * @param b64Data  Pure base64 string without contentType
+   * @param contentType the content type of the file i.e (image/jpeg - image/png - text/plain)
+   * @param sliceSize SliceSize to process the byteCharacters
+   * @see http://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
+   * @return Blob
+   */
+  private b64toBlob(b64Data: string, contentType: string, sliceSize?: number) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+    }
+
+    const blob = new Blob(byteArrays, { type: contentType });
+    return blob;
+  }
+
   // filter image
   filters(
     ctx,
     image,
     { grayscale, saturate, brightness, contrast, sepia, opacity, invert }
   ) {
+    // tslint:disable-next-line: max-line-length
     ctx.filter = `grayscale(${grayscale}%) saturate(${saturate}) brightness(${brightness}%) contrast(${contrast}%) sepia(${sepia}%) opacity(${opacity}%) invert(${invert}%)`;
     ctx.drawImage(image, 0, 0);
   }
@@ -384,12 +435,35 @@ export class HomePage {
         '--ion-background-color'
       )
     );
-  } // tests no funtional
+  }
+  printResult() {
+    this.log = this.result.join('\n');
+  }
+  reduceResponse(obj: OCRModel) {
+    const { regions } = obj;
+    const data = regions.map(({ lines }) =>
+      lines.map(({ words: w }) => w.map(({ text }) => text))
+    );
+    // const result: [[]] = [].concat.apply([], data);
+    const result = [].concat(...data);
+    console.log(result);
+    // print
+    console.log(result.map(r => r.join(' ')).join('\n'));
+    const str = result.map(r => r.join(' ')).join('\n');
+    return { result, str };
+  }
+  // tests no funtional
   testAzure() {
-    const file = this.dataURLtoFile(
+    /*  const file = this.dataURLtoFile(
+      // tslint:disable-next-line: max-line-length
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAH0AfQDAREAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD910hIYsT047e3I69zjrnrXQdBNHaMZPOPYFVOCDtbHXnB5HBAHHYckgC3Fo0iheQCwYMOpZMAEA+nGcggkA+tJpNWYtForXtt5bbduhLHaBRzwCB7ngfp1pj32F+z5BAyVDYJYEcnjjHUY7j0PocJKysNtttvdu79WU57OR2HltnDDcCB8y9CMnp657fjQ1dNdxCyQY2qexIye/45Iz9OnTnimAyOwjiyUDDd7k9OgOemM/iOc88AEwgwehJHpk+/OD3HpigBxtwpPByx5wc9R09B0zn68+iStfzbf3gKtpjkjPTGTjn8D+P+eBq7T7X/ABAtCykwODljggYOSemccjv6Dnn0pgWmtJYlBbaOCeGyQMDPGMZHfkeozxQBRa2yxbOSe3+ce9Tyrq3vfpq38vy7jTaaae1vwd7el9bd9R3lhk2s393HGMYB6n3ByOo49sVMPdco66uUr2sraK1/8ugSd5N6au+miu9WkvL7uzY2O2lwPlLAngqh556AD8uvpWgjQ8lozGzK2VPKgcjpg985Hzdh2yMg0rap9r/iHfzd35tKyb80tPQkbfM+5vkU8h2HYdPlA5DABSQDyOCBnByXvo9bXt5AWFtHPRgFOSDtLZU4OAMg8EDOcew65Tgm76/18g9f6/Mja1kkxGMnBJYsCuMkjcOAcZLHB6+4FTCO9+ZWm7J/LbTZ/K5cqknBRaVopa2vK0VZK+r+S+W7Fk0+bYsQMZQMXDEsCruFVsjHIIVQOvuAck3yr8eb5k3fltbZbfdv57+ZmzWLKDubkHkAHOfyxj9CSPXkavbyaf3C/r79ysbd9pIXIBAJ5z6KdvH4noO9MDn9VtZmjO3nAc7QTuPQgKADnkdMZOOM5xS5Ve+uv9b7r5MuFR022knfvfz7Ndz588V28qb94MqsC7cbWiC4UZAA6BcE9sE7epp8iblVaak1H00XL56pdmKc5Tk5St02vva2zvbRLrvfRdfyo/bs0iTWpfBGmKgk36BfXjJ5qxuRa+J9PUbHx8yoJHaRE8yVkZggXaJYsJtxqQlZe9y09d9Zb6PsrrfpdItUZew9vePL7V0uVNufMoc6layXLy2Td7p6WaVzzf8AYssZ4fjyrRNtmntL+4ZmAYNMsE9vOMEKqhkuSFXgkbtmHAZLqQcoOzXNry81rc3K1HnSV+RytflV7vTTQyTs7rdao/pCGnldqbSW2oxxuP3lVsAYyQdwIYZDZBUlSDWWG9ooTVXkUo1JK8OZRaSirrn11le1+lutwu223a7benm3b8N/Mty2DwJuzhtwwAVIOMZ655OMY9OQR1HSAiK+3bjLHOAOc/l39M/yoAIoHWRTkqy4ZSRjbgk5OQQeR6H8KTV013A2ILFI2DklgAu0AEBWGOQckszn8T+X5I6qcYuEW4pvXdJ/afc//Z ',
       'img.png'
+    ); */
+    const file = this.b64toBlob(
+      // tslint:disable-next-line: max-line-length
+      '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 ',
+      'image/jpeg'
     );
-    this.sendToAzure(file);
+    this.sendToAzure(file as any);
   }
 }

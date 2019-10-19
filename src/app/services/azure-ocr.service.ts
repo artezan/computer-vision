@@ -8,7 +8,7 @@ export class AzureOcrService {
     'https://mx-test-ife-cv.cognitiveservices.azure.com/vision/v2.0/ocr?language=es';
   constructor(private http: HttpClient) {}
 
-  postImgToOCR(img: File) {
+  postImgToOCR(img: File | Blob) {
     const headers = new HttpHeaders({
       'Ocp-Apim-Subscription-Key': '569eb371f9c64c5582aca157767f9933'
     });

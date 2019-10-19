@@ -7,7 +7,7 @@
 </ion-header>
 
 <div style="overflow-x:auto; text-align: center;"
-     *ngIf="tabSelect === 'edit' || showIMG">
+     *ngIf="tabSelect === 'edit'">
   <img #imgPrev
        [src]="imgSrc"
        [ngStyle]="{
@@ -189,11 +189,12 @@
 
 <ion-footer>
   <ion-toolbar *ngIf="tabSelect === 'camera'">
-    <ion-button (click)="takeSnapshot('azure')"> azure</ion-button>
-    <ion-button (click)="takeSnapshot('c')"> c</ion-button>
-    <ion-button (click)="takeSnapshot('d')"> d</ion-button>
-    <ion-button (click)="takeSnapshot('normal')">normal</ion-button>
-    <ion-button (click)="testMock(); ">test</ion-button>
+    <ion-button (click)="takeSnapshot('azure')"> AzureFile</ion-button>
+    <ion-button color="secondary"
+                (click)="takeSnapshot('azure64')">AzureB64</ion-button>
+    <!-- <ion-button (click)="takeSnapshot('d')"> d</ion-button> -->
+    <!-- <ion-button (click)="takeSnapshot('normal')">normal</ion-button> -->
+    <!-- <ion-button (click)="testMock(); ">test</ion-button> -->
   </ion-toolbar>
   <ion-toolbar color="light">
     <ion-tabs>
